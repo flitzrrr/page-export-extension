@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "crawl4ai Page Exporter",
+  "version": "0.3.0",
+  "default_locale": "en",
+  "description": "Export the current page's HTML (optionally with internal links) to feed into crawl4ai.",
+  "permissions": [
+    "scripting",
+    "downloads",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "crawl4ai Page Exporter"
+  }
+}

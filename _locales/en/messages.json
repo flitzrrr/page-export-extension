@@ -1,0 +1,50 @@
+{
+  "appName": {
+    "message": "crawl4ai Page Exporter"
+  },
+  "popupTitle": {
+    "message": "Export with crawl4ai"
+  },
+  "btnExportSingle": {
+    "message": "Export current page HTML"
+  },
+  "btnExportWithLinks": {
+    "message": "Export page + internal links"
+  },
+  "labelSameOrigin": {
+    "message": "Only same-origin links"
+  },
+  "labelMaxPages": {
+    "message": "Max. pages (including this one):"
+  },
+  "statusExportingSingle": {
+    "message": "Exporting current page…"
+  },
+  "statusExportDoneSingle": {
+    "message": "Exported as $1.html"
+  },
+  "statusCollectingLinks": {
+    "message": "Collecting links (up to $1)…"
+  },
+  "statusExportingMulti": {
+    "message": "Exporting multiple pages…"
+  },
+  "statusExportingPageNofM": {
+    "message": "Exporting page $1 of $2…"
+  },
+  "statusExportDoneMulti": {
+    "message": "Exported $1 pages."
+  },
+  "errorNoActiveTab": {
+    "message": "No active tab found."
+  },
+  "errorExtractFailed": {
+    "message": "Failed to extract page HTML."
+  },
+  "errorCollectLinksFailed": {
+    "message": "Failed to collect links from the page."
+  },
+  "errorUnexpected": {
+    "message": "Unexpected error: $1"
+  }
+}

@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>__MSG_popupTitle__</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 10px;
+        min-width: 260px;
+      }
+      button {
+        width: 100%;
+        padding: 6px 8px;
+        margin-top: 4px;
+      }
+      #status {
+        margin-top: 8px;
+        font-size: 12px;
+      }
+      .options {
+        margin-top: 8px;
+        font-size: 12px;
+      }
+      .options label {
+        display: block;
+        margin-top: 4px;
+      }
+      input[type="number"] {
+        width: 80px;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="export-single">__MSG_btnExportSingle__</button>
+    <button id="export-with-links">__MSG_btnExportWithLinks__</button>
+
+    <div class="options">
+      <label>
+        <input type="checkbox" id="same-origin-only" checked />
+        <span id="label-same-origin">__MSG_labelSameOrigin__</span>
+      </label>
+      <label>
+        <span id="label-max-pages">__MSG_labelMaxPages__</span>
+        <input type="number" id="max-pages" min="1" max="500" value="20" />
+      </label>
+    </div>
+
+    <div id="status"></div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
+
