@@ -55,16 +55,16 @@
     </style>
   </head>
   <body>
-    <button id="export-single">__MSG_btnExportSingle__</button>
-    <button id="export-with-links">__MSG_btnExportWithLinks__</button>
+    <button id="export-single">Export current page HTML</button>
+    <button id="export-with-links">Export page + internal links</button>
 
     <div class="options">
       <label>
         <input type="checkbox" id="same-origin-only" checked />
-        <span id="label-same-origin">__MSG_labelSameOrigin__</span>
+        <span id="label-same-origin">Only same-origin links</span>
       </label>
       <label>
-        <span id="label-max-pages">__MSG_labelMaxPages__</span>
+        <span id="label-max-pages">Max. pages (including this one):</span>
         <input type="number" id="max-pages" min="1" max="500" value="20" />
       </label>
     </div>
@@ -94,4 +94,3 @@
     <script src="popup.js"></script>
   </body>
 </html>
-

@@ -264,6 +264,36 @@ btnWithLinks.addEventListener("click", exportPageWithLinks);
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
+    // Localized UI labels
+    if (chrome.i18n) {
+      const t = (key, fallback) =>
+        chrome.i18n.getMessage(key) || fallback;
+
+      btnSingle.textContent = t(
+        "btnExportSingle",
+        "Export current page HTML"
+      );
+      btnWithLinks.textContent = t(
+        "btnExportWithLinks",
+        "Export page + internal links"
+      );
+
+      const sameOriginLabel = document.getElementById("label-same-origin");
+      const maxPagesLabel = document.getElementById("label-max-pages");
+      if (sameOriginLabel) {
+        sameOriginLabel.textContent = t(
+          "labelSameOrigin",
+          "Only same-origin links"
+        );
+      }
+      if (maxPagesLabel) {
+        maxPagesLabel.textContent = t(
+          "labelMaxPages",
+          "Max. pages (including this one):"
+        );
+      }
+    }
+
     const settings = await loadSettings();
     backendUrlInput.value = settings.backendUrl || DEFAULT_BACKEND_URL;
     targetFolderInput.value = settings.targetFolder || "";
@@ -286,4 +316,3 @@ saveSettingsBtn.addEventListener("click", async () => {
     setStatus("Failed to save settings: " + String(err), true);
   }
 });
-
