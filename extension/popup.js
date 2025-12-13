@@ -7,6 +7,7 @@ const btnWithLinks = document.getElementById("export-with-links");
 const statusEl = document.getElementById("status");
 const sameOriginCheckbox = document.getElementById("same-origin-only");
 const maxPagesInput = document.getElementById("max-pages");
+const maxDepthInput = document.getElementById("max-depth");
 
 const backendUrlInput = document.getElementById("backend-url");
 const targetFolderInput = document.getElementById("target-folder");
@@ -72,6 +73,7 @@ async function sendToBackend(html, meta) {
     title: meta.title || "",
     output_format: settings.outputFormat || "markdown",
     target_folder: settings.targetFolder || "",
+    relative_path: meta.relativePath || "",
   };
 
   setStatus("Sending page to backend…");
@@ -124,6 +126,10 @@ async function exportSinglePage() {
       sendToBackend(response.html, {
         url: response.url || tab.url || "",
         title: baseTitle,
+        relativePath:
+          (response.url || tab.url)
+            ? new URL(response.url || tab.url).pathname
+            : "",
       }).catch((err) => {
         console.error(err);
         setStatus("Unexpected backend error: " + String(err), true);
@@ -145,9 +151,9 @@ async function exportPageWithLinks() {
       1,
       Math.min(500, parseInt(maxPagesInput.value || "20", 10))
     );
-
-    setStatus(
-      chrome.i18n.getMessage("statusCollectingLinks", [String(maxPages)])
+    const maxDepth = Math.max(
+      1,
+      Math.min(10, parseInt(maxDepthInput.value || "1", 10))
     );
 
     const tab = await getActiveTab();
@@ -158,97 +164,148 @@ async function exportPageWithLinks() {
 
     await ensureContentScript(tab.id);
 
-    chrome.tabs.sendMessage(
-      tab.id,
-      {
-        type: "GET_LINKS",
-        sameOriginOnly,
-        maxLinks: maxPages - 1,
-      },
-      async (response) => {
-        if (!response || !response.ok) {
-          const msg =
-            (response && response.error) ||
-            chrome.i18n.getMessage("errorCollectLinksFailed");
-          setStatus(msg, true);
-          return;
-        }
+    const startUrl = tab.url || "";
+    if (!startUrl) {
+      setStatus("Active tab has no URL.", true);
+      return;
+    }
 
-        const links = response.links || [];
-        const allUrls = [response.baseUrl, ...links];
+    const visited = new Set();
+    const queue = [];
 
-        setStatus(
-          chrome.i18n.getMessage("statusExportingMulti", [
-            String(allUrls.length),
-          ])
+    const normalizeUrl = (u) => {
+      try {
+        const parsed = new URL(u);
+        parsed.hash = "";
+        return parsed.toString();
+      } catch {
+        return null;
+      }
+    };
+
+    const rootUrlNorm = normalizeUrl(startUrl);
+    if (!rootUrlNorm) {
+      setStatus("Failed to parse active tab URL.", true);
+      return;
+    }
+
+    visited.add(rootUrlNorm);
+    queue.push({ url: rootUrlNorm, depth: 0, tabId: tab.id, isRoot: true });
+
+    let processed = 0;
+
+    setStatus(
+      chrome.i18n.getMessage("statusExportingMulti", [String(maxPages)])
+    );
+
+    while (queue.length && processed < maxPages) {
+      const current = queue.shift();
+      const { url, depth, isRoot } = current;
+
+      let currentTabId = current.tabId;
+
+      if (!currentTabId) {
+        const newTab = await chrome.tabs.create({
+          url,
+          active: false,
+        });
+
+        await new Promise((resolve) => {
+          function listener(tabId, info) {
+            if (tabId === newTab.id && info.status === "complete") {
+              chrome.tabs.onUpdated.removeListener(listener);
+              resolve();
+            }
+          }
+          chrome.tabs.onUpdated.addListener(listener);
+        });
+
+        currentTabId = newTab.id;
+      }
+
+      if (!currentTabId) continue;
+
+      await ensureContentScript(currentTabId);
+
+      setStatus(
+        chrome.i18n.getMessage("statusExportingPageNofM", [
+          String(processed + 1),
+          String(maxPages),
+        ])
+      );
+
+      const exportResponse = await new Promise((resolve) => {
+        chrome.tabs.sendMessage(
+          currentTabId,
+          { type: "EXPORT_HTML" },
+          (resp) => resolve(resp)
+        );
+      });
+
+      if (exportResponse && exportResponse.ok) {
+        const baseTitle = sanitizeSlug(
+          exportResponse.title || "page"
         );
 
-        let index = 0;
-        for (const url of allUrls) {
-          index += 1;
-          setStatus(
-            chrome.i18n.getMessage("statusExportingPageNofM", [
-              String(index),
-              String(allUrls.length),
-            ])
+        try {
+          const urlForPath = exportResponse.url || url;
+          const relPath = urlForPath ? new URL(urlForPath).pathname : "";
+
+          await sendToBackend(exportResponse.html, {
+            url: urlForPath,
+            title: baseTitle,
+            relativePath: relPath,
+          });
+        } catch (err) {
+          console.error(err);
+          setStatus("Unexpected backend error: " + String(err), true);
+        }
+      }
+
+      processed += 1;
+
+      // Collect further links if we have not reached max depth yet
+      if (depth < maxDepth - 1 && processed < maxPages) {
+        const linksResponse = await new Promise((resolve) => {
+          chrome.tabs.sendMessage(
+            currentTabId,
+            {
+              type: "GET_LINKS",
+              sameOriginOnly,
+              maxLinks: maxPages,
+            },
+            (resp) => resolve(resp)
           );
+        });
 
-          const newTab = await chrome.tabs.create({
-            url,
-            active: false,
-          });
-
-          await new Promise((resolve) => {
-            function listener(tabId, info) {
-              if (tabId === newTab.id && info.status === "complete") {
-                chrome.tabs.onUpdated.removeListener(listener);
-                resolve();
-              }
+        if (linksResponse && linksResponse.ok) {
+          const links = linksResponse.links || [];
+          for (const rawUrl of links) {
+            const norm = normalizeUrl(rawUrl);
+            if (!norm) continue;
+            if (visited.has(norm)) continue;
+            visited.add(norm);
+            queue.push({
+              url: norm,
+              depth: depth + 1,
+              tabId: null,
+              isRoot: false,
+            });
+            if (queue.length + processed >= maxPages) {
+              break;
             }
-            chrome.tabs.onUpdated.addListener(listener);
-          });
-
-          if (!newTab.id) continue;
-
-          await ensureContentScript(newTab.id);
-
-          await new Promise((resolve) => {
-            chrome.tabs.sendMessage(
-              newTab.id,
-              { type: "EXPORT_HTML" },
-              (resp) => {
-                if (resp && resp.ok) {
-                  const baseTitle = sanitizeSlug(
-                    resp.title || newTab.title || "page"
-                  );
-
-                  sendToBackend(resp.html, {
-                    url,
-                    title: baseTitle,
-                  }).catch((err) => {
-                    console.error(err);
-                    setStatus(
-                      "Unexpected backend error: " + String(err),
-                      true
-                    );
-                  });
-                }
-                resolve();
-              }
-            );
-          });
-
-          if (newTab.id) {
-            chrome.tabs.remove(newTab.id);
           }
         }
-
-        setStatus(
-          chrome.i18n.getMessage("statusExportDoneMulti", [
-            String(allUrls.length),
-          ])
-        );
       }
+
+      // Close non-root tabs to keep the browser tidy
+      if (!isRoot && currentTabId) {
+        chrome.tabs.remove(currentTabId);
+      }
+    }
+
+    setStatus(
+      chrome.i18n.getMessage("statusExportDoneMulti", [String(processed)])
     );
   } catch (err) {
     console.error(err);

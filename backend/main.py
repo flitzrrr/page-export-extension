@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import re
 from pathlib import Path
+from urllib.parse import urlparse
 from typing import Literal, Optional
 
 from fastapi import FastAPI, HTTPException
@@ -31,6 +32,8 @@ class ImportRequest(BaseModel):
   title: Optional[str] = None
   output_format: Literal["markdown", "html"] = "markdown"
   target_folder: str = ""
+  # Optional relative path from the extension (e.g. /apis/access-sessions)
+  relative_path: Optional[str] = None
 
 
 def _safe_slug(value: str) -> str:
@@ -39,22 +42,56 @@ def _safe_slug(value: str) -> str:
   return slug or "page"
 
 
+def _resolve_paths(req: ImportRequest) -> tuple[Path, Path, Path]:
+  """
+  Compute (target_dir, html_path, md_path) based on target_folder + URL/path.
+
+  Example:
+    EXPORT_BASE_DIR=/exports
+    target_folder=docs/baikal-tech
+    url=https://developers.baikalplatform.com/apis/access-sessions
+
+    -> /exports/docs/baikal-tech/apis/access-sessions.html
+  """
+  target_dir = BASE_DIR
+  if req.target_folder:
+    safe_parts = [p for p in Path(req.target_folder).parts if p not in (".", "..", "/")]
+    if safe_parts:
+      target_dir = BASE_DIR.joinpath(*safe_parts)
+
+  # Prefer explicit relative_path, fall back to URL path, then simple "page"
+  raw_path: Optional[str] = None
+  if req.relative_path:
+    raw_path = req.relative_path
+  elif req.url:
+    raw_path = urlparse(req.url).path
+  if not raw_path:
+    raw_path = "/page"
+
+  segments = [seg for seg in raw_path.split("/") if seg]
+  if not segments:
+    segments = ["index"]
+
+  *dir_segments, last_segment = segments
+  dir_slugs = [_safe_slug(s) for s in dir_segments]
+  last_slug = _safe_slug(last_segment)
+
+  if dir_slugs:
+    target_dir = target_dir.joinpath(*dir_slugs)
+
+  target_dir.mkdir(parents=True, exist_ok=True)
+
+  html_path = target_dir / f"{last_slug}.html"
+  md_path = target_dir / f"{last_slug}.md"
+  return target_dir, html_path, md_path
+
+
 @app.post("/api/import-html")
 async def import_html(req: ImportRequest):
   if not req.html:
     raise HTTPException(status_code=400, detail="Missing html in request body")
 
-  target_dir = BASE_DIR
-  if req.target_folder:
-    safe_parts = [p for p in Path(req.target_folder).parts if p not in (".", "..", "/")]
-    target_dir = BASE_DIR.joinpath(*safe_parts)
-
-  target_dir.mkdir(parents=True, exist_ok=True)
-
-  slug_source = req.title or req.url or "page"
-  slug = _safe_slug(slug_source)
-
-  html_path = target_dir / f"{slug}.html"
+  _, html_path, md_path = _resolve_paths(req)
   html_path.write_text(req.html, encoding="utf-8")
 
   if req.output_format == "html":
@@ -74,7 +111,6 @@ async def import_html(req: ImportRequest):
     )
 
   markdown = result.markdown or ""
-  md_path = target_dir / f"{slug}.md"
   md_path.write_text(markdown, encoding="utf-8")
 
   return {
@@ -111,4 +147,3 @@ Usage
 The extension will send each captured page (and optional sub-links) to
 /api/import-html, and this backend will save .html and .md files under EXPORT_BASE_DIR.
 """
-
