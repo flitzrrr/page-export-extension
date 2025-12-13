@@ -1,14 +1,14 @@
 {
   "manifest_version": 3,
   "name": "crawl4ai Page Exporter",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "default_locale": "en",
-  "description": "Export the current page's HTML (optionally with internal links) to feed into crawl4ai.",
+  "description": "Export the current page's HTML (optionally with internal links) to feed into crawl4ai or a backend service.",
   "permissions": [
     "scripting",
-    "downloads",
     "activeTab",
-    "tabs"
+    "tabs",
+    "storage"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -18,3 +18,4 @@
     "default_title": "crawl4ai Page Exporter"
   }
 }
+

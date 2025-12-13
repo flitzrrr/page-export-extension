@@ -1,35 +1,54 @@
 # crawl4ai Page Exporter
 
-Browser extension to export the current page (optionally with internal links) as HTML files that you can feed into **crawl4ai** for Markdown conversion and RAG pipelines.
+All-in-one repo containing:
+
+- a **Chrome/Edge extension** to export the current page (optionally with internal links) and send it to a backend, and
+- a **FastAPI backend** that uses **crawl4ai** to turn those HTML pages into Markdown.
 
 The UI texts are localized (English/German) based on your browser language, but this documentation is English only.
 
 ---
 
-## Overview
+## Repository structure
 
-**crawl4ai Page Exporter** is a small Chrome/Edge extension that:
+- `extension/` – Chrome/Edge Manifest v3 extension  
+  - `manifest.json`, `popup.html`, `popup.js`, `content.js`, `_locales/*`
+- `backend/` – FastAPI service using crawl4ai  
+  - `main.py` (single-file backend)
 
-- exports the **current page** to a `.html` file, or
-- exports the **current page + internal links** as multiple `.html` files.
+You can use them together or independently.
 
-It runs inside your logged-in browser session, so you can capture content behind authentication (SSO, 2FA, internal docs) and then feed these HTML files into **crawl4ai** to get clean, LLM-ready Markdown.
+---
+
+## Extension (Chrome / Edge)
+
+### Overview
+
+**crawl4ai Page Exporter** (under `extension/`) is a small Chrome/Edge extension that:
+
+- exports the **current page** (HTML), or
+- exports the **current page + internal links** (multi-page),
+- and sends each page to a backend that can store/convert it.
+
+It runs inside your logged-in browser session, so you can capture content behind authentication (SSO, 2FA, internal docs) and then process it with **crawl4ai** on the backend.
 
 ### Features
 
 - Manifest v3 (Chrome / Edge)
 - Works on all domains (`<all_urls>`), including behind login
-- Two modes:
+- Two export modes:
   - “Export current page HTML”
   - “Export page + internal links”
-- Options:
+- Options in the popup:
   - Only same-origin links
   - Max number of pages (including the starting page)
-- UI automatically switches between English and German based on your browser language
+- Backend settings in the popup:
+  - Backend URL (e.g. `http://localhost:8000`)
+  - Target folder (server-side)
+  - Output format (`markdown` or `html`)
+- UI automatically switches between English and German based on browser language
 
----
-
-## Installation (Chrome / Edge)
+### Install extension (unpacked)
 
 1. Clone the repo:
 
@@ -43,63 +62,96 @@ It runs inside your logged-in browser session, so you can capture content behind
    - Open `chrome://extensions` or `edge://extensions`
    - Enable **Developer mode**
    - Click **Load unpacked**
-   - Select the `page-export-extension` folder
+   - Select the `extension` folder inside this repo
 
 3. You should see an icon (puzzle piece or similar) with tooltip **“crawl4ai Page Exporter”**.
 
----
-
-## Usage
+### Usage
 
 1. Navigate to the page you want to capture (e.g. internal technical docs).
 2. Make sure you are logged in in your browser (if required).
 3. Click the extension icon and then in the popup:
 
    - **“Export current page HTML”**  
-     → saves only the current page as a single `.html` file.
+     → sends only the current page to the backend.
 
    - **“Export page + internal links”**  
-     → collects internal links, opens each in a background tab, saves the HTML files, and closes the tabs again.
+     → collects internal links, opens each in a background tab, sends the HTML to the backend, and closes the tabs again.
 
-4. In the popup you can configure:
+4. In the popup configure:
 
    - “Only same-origin links” (recommended to stay within the site)
    - “Max. pages (including this one)” e.g. `20`
+   - **Backend settings**:
+     - Backend URL: e.g. `http://localhost:8000`
+     - Target folder: e.g. `docs/baikal-tech`
+     - Output format: `Markdown` or `HTML only`
 
 > Note: Keep the popup open while the multi-export is running until you see the final status message.
 
 ---
 
-## Integration with crawl4ai
+## Backend (FastAPI + crawl4ai)
 
-The extension stores `.html` files that are designed to work smoothly with **crawl4ai**.
+The backend lives in `backend/main.py` and exposes a single endpoint that the extension calls.
 
-In the `crawl4ai` repo there is a helper:
+### API
 
-- Module: `crawl4ai.script`
-- Function: `html_batch_to_md_cli`
+- `POST /api/import-html`
+  - Request body:
+    - `html: str` – full HTML of the page
+    - `url: str | null`
+    - `title: str | null`
+    - `output_format: "markdown" | "html"`
+    - `target_folder: str` – server-side folder (relative to `EXPORT_BASE_DIR`)
+  - Behavior:
+    - Saves `slug.html` under `EXPORT_BASE_DIR/target_folder`.
+    - If `output_format == "markdown"`:
+      - runs crawl4ai with `file://...` on that HTML file,
+      - writes `slug.md` next to it.
+  - Response:
+    - `{ "ok": true, "saved_html": "...", "saved_markdown": "..." }`
 
-Example:
+### Run the backend locally
 
-```python
-from crawl4ai.script import html_batch_to_md_cli
+1. From this repo root:
 
-html_dir = "/path/to/exported/html"      # folder with .html files from the extension
-md_dir = "/path/to/output/markdown"      # where to write .md files
+   ```bash
+   cd backend
 
-html_batch_to_md_cli(html_dir, md_dir, overwrite=False)
-```
+   # dependencies (example)
+   pip install fastapi uvicorn "crawl4ai[playwright]"
+   crawl4ai-setup
+   ```
 
-Internally, this uses `file://` URLs and the normal crawl4ai Markdown pipeline, so the resulting `.md` files are ready for RAG, QA, or any other LLM-based workflow.
+2. Start the server:
+
+   ```bash
+   EXPORT_BASE_DIR="/path/to/export-dir" \
+     uvicorn main:app --host 0.0.0.0 --port 8000
+   ```
+
+3. In the extension popup:
+
+   - Backend URL: `http://localhost:8000`
+   - Target folder: e.g. `docs/baikal-tech`
+   - Output format: `Markdown`
+
+Now every exported page (and optional sub-link) will be sent to `/api/import-html`, and `.html` + `.md` files will appear under `EXPORT_BASE_DIR`.
 
 ---
 
-## Development
+## Development notes
 
-- Manifest v3, no build step required (plain JS/HTML/CSS).
-- To change text/labels, edit:
-  - `_locales/en/messages.json`
-  - `_locales/de/messages.json`
-- To adjust crawl behavior (e.g. link selection), edit:
-  - `content.js` – link extraction / page HTML extraction
-  - `popup.js` – UI logic, batching, and download handling
+- Extension:
+  - Manifest v3, no build step required (plain JS/HTML/CSS).
+  - To change text/labels, edit:
+    - `extension/_locales/en/messages.json`
+    - `extension/_locales/de/messages.json`
+  - To adjust crawl behavior (e.g. link selection), edit:
+    - `extension/content.js` – link extraction / page HTML extraction
+    - `extension/popup.js` – UI logic, batching, backend calls
+
+- Backend:
+  - Single-file FastAPI app in `backend/main.py`.
+  - Uses crawl4ai’s default Markdown generator; you can customize the `CrawlerRunConfig` or Markdown generator as needed.

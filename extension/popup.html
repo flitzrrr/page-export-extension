@@ -29,6 +29,29 @@
       input[type="number"] {
         width: 80px;
       }
+      .settings {
+        margin-top: 12px;
+        padding-top: 8px;
+        border-top: 1px solid #ddd;
+        font-size: 12px;
+      }
+      .settings label {
+        display: block;
+        margin-top: 4px;
+      }
+      .settings input,
+      .settings select {
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 2px;
+      }
+      .settings h4 {
+        margin: 4px 0;
+        font-size: 12px;
+      }
+      #save-settings {
+        margin-top: 6px;
+      }
     </style>
   </head>
   <body>
@@ -44,6 +67,26 @@
         <span id="label-max-pages">__MSG_labelMaxPages__</span>
         <input type="number" id="max-pages" min="1" max="500" value="20" />
       </label>
+    </div>
+
+    <div class="settings">
+      <h4>Backend settings</h4>
+      <label>
+        Backend URL
+        <input type="text" id="backend-url" placeholder="http://localhost:8000" />
+      </label>
+      <label>
+        Target folder (server-side)
+        <input type="text" id="target-folder" placeholder="docs/baikal-tech" />
+      </label>
+      <label>
+        Output format
+        <select id="output-format">
+          <option value="markdown">Markdown</option>
+          <option value="html">HTML only</option>
+        </select>
+      </label>
+      <button id="save-settings">Save settings</button>
     </div>
 
     <div id="status"></div>
