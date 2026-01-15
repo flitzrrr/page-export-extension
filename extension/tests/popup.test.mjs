@@ -87,7 +87,10 @@ test("popup initializes without crashing", async () => {
   dom.window.chrome = chromeMock;
 
   const scriptPath = join(__dirname, "..", "dist", "popup.js");
-  const scriptContent = await readFile(scriptPath, "utf-8");
+  const scriptContent = (await readFile(scriptPath, "utf-8")).replace(
+    /^export \{\};\s*/m,
+    ""
+  );
 
   dom.window.eval(scriptContent);
   assert.equal(typeof dom.window.__popupInit, "function");

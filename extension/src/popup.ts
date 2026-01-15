@@ -1,7 +1,11 @@
+export {};
+
 const DEFAULT_BACKEND_URL = "http://localhost:8000";
 
-interface Window {
-  __popupInit?: () => void;
+declare global {
+  interface Window {
+    __popupInit?: () => void;
+  }
 }
 
 type Settings = {
