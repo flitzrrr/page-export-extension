@@ -1,5 +1,9 @@
 const DEFAULT_BACKEND_URL = "http://localhost:8000";
 
+interface Window {
+  __popupInit?: () => void;
+}
+
 type Settings = {
   backendUrl: string;
   targetFolder: string;
@@ -406,6 +410,10 @@ function initPopup(): void {
       setStatus(status, `Failed to save settings: ${String(err)}`, true);
     }
   });
+}
+
+if (typeof window !== "undefined") {
+  window.__popupInit = initPopup;
 }
 
 document.addEventListener("DOMContentLoaded", initPopup);

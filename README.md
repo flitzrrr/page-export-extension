@@ -93,6 +93,7 @@ npm run test
 - `npm run format` – format with Prettier.
 - `npm run typecheck` – strict TypeScript checks.
 - `npm run test` – run backend tests (pytest).
+- `npm run test:extension` – run the popup smoke test.
 - `npm run package` – build and zip the extension into `dist/`.
 
 ## Security and threat model

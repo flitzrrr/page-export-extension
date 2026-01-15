@@ -30,7 +30,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "python -m pytest",
+    "test": "npm run test:extension && python -m pytest",
+    "test:extension": "npm run build && node --test extension/tests/*.test.mjs",
     "package": "node scripts/package-extension.mjs"
   },
   "devDependencies": {
@@ -41,6 +42,7 @@
     "archiver": "^7.0.1",
     "eslint": "^9.7.0",
     "globals": "^15.8.0",
+    "jsdom": "^24.1.1",
     "prettier": "^3.3.3",
     "typescript": "^5.5.4"
   }
