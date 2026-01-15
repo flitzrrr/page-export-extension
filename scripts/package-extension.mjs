@@ -37,6 +37,7 @@ async function run() {
   archive.file(join(extensionDir, "manifest.json"), { name: "manifest.json" });
   archive.file(join(extensionDir, "popup.html"), { name: "popup.html" });
   archive.directory(join(extensionDir, "_locales"), "_locales");
+  archive.directory(join(extensionDir, "icons"), "icons");
   archive.directory(distDir, "dist");
 
   await archive.finalize();

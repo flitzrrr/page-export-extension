@@ -4,6 +4,12 @@
   "version": "0.4.0",
   "default_locale": "en",
   "description": "Export the current page's HTML (optionally with internal links) to feed into crawl4ai or a backend service.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "permissions": [
     "scripting",
     "activeTab",
@@ -18,4 +24,3 @@
     "default_title": "crawl4ai Page Exporter"
   }
 }
-
