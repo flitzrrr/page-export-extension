@@ -32,6 +32,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run test:extension && python -m pytest",
     "test:extension": "npm run build && node --test extension/tests/*.test.mjs",
+    "check:version": "node scripts/check-version.mjs",
     "package": "node scripts/package-extension.mjs"
   },
   "devDependencies": {
