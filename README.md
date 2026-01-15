@@ -107,11 +107,7 @@ This extension can read any page you visit and sends HTML to a backend you confi
 
 ## Release
 
-```bash
-npm run package
-```
-
-The zip artifact is created in `dist/`. Upload that to the Chrome Web Store or distribute it internally.
+See `RELEASE.md` for versioning and release steps. The zip artifact is created in `dist/` and can be uploaded to the Chrome Web Store or distributed internally.
 
 ## Contributing
 
