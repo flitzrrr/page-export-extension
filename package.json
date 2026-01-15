@@ -1,0 +1,47 @@
+{
+  "name": "crawl4ai-page-export-extension",
+  "version": "0.4.0",
+  "description": "Chrome/Edge extension + FastAPI backend to export pages to crawl4ai.",
+  "private": true,
+  "license": "MIT",
+  "author": "flitzrrr",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flitzrrr/page-export-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/flitzrrr/page-export-extension/issues"
+  },
+  "homepage": "https://github.com/flitzrrr/page-export-extension#readme",
+  "keywords": [
+    "browser-extension",
+    "chrome-extension",
+    "crawl4ai",
+    "fastapi",
+    "markdown"
+  ],
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "scripts": {
+    "dev": "tsc -p tsconfig.json --watch",
+    "build": "node scripts/build-extension.mjs",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "python -m pytest",
+    "package": "node scripts/package-extension.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.7.0",
+    "@types/chrome": "^0.0.266",
+    "@typescript-eslint/eslint-plugin": "^8.0.1",
+    "@typescript-eslint/parser": "^8.0.1",
+    "archiver": "^7.0.1",
+    "eslint": "^9.7.0",
+    "globals": "^15.8.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4"
+  }
+}

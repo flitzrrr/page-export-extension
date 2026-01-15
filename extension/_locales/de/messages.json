@@ -17,6 +17,9 @@
   "labelMaxPages": {
     "message": "Max. Seiten (inkl. dieser):"
   },
+  "labelMaxDepth": {
+    "message": "Max. Tiefe (Ebenen):"
+  },
   "statusExportingSingle": {
     "message": "Exportiere aktuelle Seite…"
   },
@@ -48,4 +51,3 @@
     "message": "Unerwarteter Fehler: $1"
   }
 }
-

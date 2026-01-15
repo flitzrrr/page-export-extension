@@ -1,85 +1,15 @@
-##############################
-# Python
-##############################
-
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.so
-
-# Virtual environments
-.venv/
-venv/
-env/
-ENV/
-
-# Environment / secrets
-.env
-.envrc
-
-# Packaging / build artefacts
-*.egg-info/
-.eggs/
-dist/
-build/
-pip-wheel-metadata/
-
-##############################
-# Tooling & caches
-##############################
-
-.mypy_cache/
-.pytest_cache/
-.ruff_cache/
-.nox/
-.tox/
-.hypothesis/
-.benchmarks/
-.coverage
-coverage/
-htmlcov/
-
-##############################
-# IDEs & OS
-##############################
-
-.vscode/
-.idea/
+node_modules
+npm-debug.log*
 .DS_Store
-.AppleDouble
-.LSOverride
-Thumbs.db
-ehthumbs.db
-Desktop.ini
 
-##############################
-# Logs & temp files
-##############################
+# Build artifacts
+dist
+extension/dist
 
-*.log
-*.tmp
-*.bak
-*.swp
-*.out
-*.err
-
-##############################
-# Kernel-QA project folders
-##############################
-
-imported/
-output/
-import_failed/
-logs/
-docs/.DS_Store
-docs/testcases/*.tmp
-docs/testcases/*.bak
-
-##############################
-# QA placeholder and metadata
-##############################
-
-!*/.keep
+# Python
 __pycache__/
 *.pyc
+.venv/
+
+# Exports
+exports/
