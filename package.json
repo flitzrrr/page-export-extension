@@ -41,7 +41,7 @@
     "@typescript-eslint/parser": "^8.0.1",
     "archiver": "^7.0.1",
     "eslint": "^9.7.0",
-    "globals": "^15.8.0",
+    "globals": "^17.0.0",
     "jsdom": "^24.1.1",
     "prettier": "^3.3.3",
     "typescript": "^5.5.4"
