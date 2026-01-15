@@ -27,6 +27,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Check version sync
+        run: npm run check:version
+
       - name: Typecheck
         run: npm run typecheck
 
