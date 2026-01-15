@@ -38,11 +38,11 @@ class ImportRequest(BaseModel):
 
 def _safe_slug(value: str) -> str:
   value = value or "page"
-  slug = re.sub(r"[^a-zA-Z0-9_-]+", "_", value).strip("_")
+  slug = re.sub(r"[^a-zA-Z0-9_-]+", "_", value).strip("_-")
   return slug or "page"
 
 
-def _resolve_paths(req: ImportRequest) -> tuple[Path, Path, Path]:
+def _resolve_paths(req: ImportRequest, base_dir: Path = BASE_DIR) -> tuple[Path, Path, Path]:
   """
   Compute (target_dir, html_path, md_path) based on target_folder + URL/path.
 
@@ -53,11 +53,11 @@ def _resolve_paths(req: ImportRequest) -> tuple[Path, Path, Path]:
 
     -> /exports/docs/baikal-tech/apis/access-sessions.html
   """
-  target_dir = BASE_DIR
+  target_dir = base_dir
   if req.target_folder:
     safe_parts = [p for p in Path(req.target_folder).parts if p not in (".", "..", "/")]
     if safe_parts:
-      target_dir = BASE_DIR.joinpath(*safe_parts)
+      target_dir = base_dir.joinpath(*safe_parts)
 
   # Prefer explicit relative_path, fall back to URL path, then simple "page"
   raw_path: Optional[str] = None
